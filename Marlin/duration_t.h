@@ -23,6 +23,9 @@
 #ifndef __DURATION_T__
 #define __DURATION_T__
 
+#include <stdio.h>
+#include <inttypes.h>
+
 struct duration_t {
   /**
    * @brief Duration is stored in seconds
@@ -145,15 +148,22 @@ struct duration_t {
    *  99:59
    *  11d 12:33
    */
-  void toDigital(char *buffer, bool with_days=false) const {
+  uint8_t toDigital(char *buffer, bool with_days=false) const {
     uint16_t h = uint16_t(this->hour()),
              m = uint16_t(this->minute() % 60UL);
-    if (with_days)
-      sprintf_P(buffer, PSTR("%ud %02u:%02u"), this->day(), h, m);
-    else if (h < 100)
-      sprintf_P(buffer, PSTR("%02u:%02u"), h % 24, m);
-    else
+    if (with_days) {
+      uint16_t d = this->day();
+      sprintf_P(buffer, PSTR("%ud %02u:%02u"), d, h % 24, m);
+      return d >= 10 ? 9 : 8;
+    }
+    else if (h < 100) {
+      sprintf_P(buffer, PSTR("%02u:%02u"), h, m);
+      return 5;
+    }
+    else {
       sprintf_P(buffer, PSTR("%u:%02u"), h, m);
+      return 6;
+    }
   }
 };
 
